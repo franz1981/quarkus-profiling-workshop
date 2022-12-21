@@ -23,9 +23,19 @@ wrk_pid=$!
 
 sleep 4
 
-java -jar ap-loader-all.jar profiler -e cpu -d 5 -f $quarkus_pid.html $quarkus_pid &
+java -jar ap-loader-all.jar profiler -e cpu -t -d 5 -f $quarkus_pid.html $quarkus_pid &
 
 wait $!
+
+pidstat -p $quarkus_pid 1 &
+
+pidstat_pid=$!
+
+# we should have 5 seconds left here
+
+sleep 4
+
+kill -SIGTERM $pidstat_pid
 
 wait $wrk_pid
 
