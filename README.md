@@ -4,15 +4,6 @@ This project uses Quarkus, the Supersonic Subatomic Java Framework.
 
 If you want to learn more about Quarkus, please visit its website: https://quarkus.io/ .
 
-## Running the application in dev mode
-
-You can run your application in dev mode that enables live coding using:
-```shell script
-./mvnw compile quarkus:dev
-```
-
-> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at http://localhost:8080/q/dev/.
-
 ## Packaging and running the application
 
 The application can be packaged using:
@@ -59,3 +50,48 @@ If you want to learn more about building native executables, please consult http
 Easily start your Reactive RESTful Web Services
 
 [Related guide section...](https://quarkus.io/guides/getting-started-reactive#reactive-jax-rs-resources)
+
+# How to load generate HTTP workload
+
+How to install the chosen load generator: https://hyperfoil.io/quickstart/quickstart1.html
+
+Why Hyperfoil? https://www.slideshare.net/InfoQ/how-not-to-measure-latency-60111840
+
+## Preparation Steps
+
+Download and unzip the generator:
+```bash
+wget https://github.com/Hyperfoil/Hyperfoil/releases/download/release-0.24/hyperfoil-0.24.zip \
+    && unzip hyperfoil-0.24.zip \
+    && cd hyperfoil-0.24
+```
+
+From within the hyperfoil's `/bin` folder and ssuming the Quarkus hello world endpoint to be up and running:
+```bash
+[hyperfoil@in-vm]$ wrk -t 1 -c 10 -d 10s http://localhost:8080/hello
+```
+While the benchmark is completed, it will output something like:
+```bash
+Running 10s test @ http://localhost:8080/hello
+  1 threads and 10 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   192.64μs  317.09μs  66.06ms   99.77%
+    Req/Sec   45764.73  17108.08  58857.00     90.91
+  503412 requests in 10.002s,  70.57MB read
+Requests/sec: 50331.13
+Transfer/sec:   7.06MB
+```
+Is it possible to start a CLI interactive sessionn with hyperfoil and both report in html
+or perform quick diff between `wrk` runs.
+
+## Which profiler? Async-profiler OBVIOUSLY!
+
+Although [async-profiler](https://github.com/jvm-profiling-tools/async-profiler) is awesome, but using it can be made simpler
+with [ap-loader](https://github.com/jvm-profiling-tools/ap-loader).
+
+Download it:
+```bash
+wget https://github.com/jvm-profiling-tools/ap-loader/releases/download/2.9/ap-loader-all.jar
+```
+
+Let's have fun with the various scripts in the `/scripts` folder of the project!
