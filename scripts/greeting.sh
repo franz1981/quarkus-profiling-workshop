@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# set sysctl kernel variables only if necessary
+current_value=$(sysctl -n kernel.perf_event_paranoid)
+if [ "$current_value" -ne 1 ]; then
+  sudo sysctl kernel.perf_event_paranoid=1
+  sudo sysctl kernel.kptr_restrict=0
+fi
+
 # let's run it with a single thread, is simpler!
 # TODO cmd can be extracted and become a run-quarkus.sh script per-se
 java -Dquarkus.vertx.event-loops-pool-size=1 -XX:+UnlockDiagnosticVMOptions -XX:+DebugNonSafepoints -jar ../target/quarkus-app/quarkus-run.jar &
