@@ -53,7 +53,7 @@ echo "Waiting $WARMUP seconds before profiling for $PROFILING seconds"
 
 sleep $WARMUP
 
-java -jar ap-loader-all.jar profiler -e cpu -t -d ${PROFILING}s -f $quarkus_pid.html $quarkus_pid &
+java -jar ap-loader-all.jar profiler -e cpu -t -d ${PROFILING} -f $quarkus_pid.html $quarkus_pid &
 
 ap_pid=$!
 
