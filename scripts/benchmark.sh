@@ -4,16 +4,27 @@ URL=hello
 
 DURATION=10
 
-WARMUP=$((${DURATION}*2/5))
+EVENT=cpu
 
-PROFILING=$((${DURATION}/2))
+# this can be html or jfr
+FORMAT=html
 
-while getopts ":u:" option; do
+while getopts ":u::e::f::d:" option; do
    case $option in
       u) URL=${OPTARG}
          ;;
+      e) EVENT=${OPTARG}
+         ;;
+      f) FORMAT=${OPTARG}
+         ;;
+      d) DURATION=${OPTARG}
+         ;;
    esac
 done
+
+WARMUP=$((${DURATION}*2/5))
+
+PROFILING=$((${DURATION}/2))
 
 FULL_URL=http://localhost:8080/${URL}
 
@@ -53,7 +64,7 @@ echo "Waiting $WARMUP seconds before profiling for $PROFILING seconds"
 
 sleep $WARMUP
 
-java -jar ap-loader-all.jar profiler -e cpu -t -d ${PROFILING} -f $quarkus_pid.html $quarkus_pid &
+java -jar ap-loader-all.jar profiler -e ${EVENT} -t -d ${PROFILING} -f ${quarkus_pid}_${EVENT}.${FORMAT} $quarkus_pid &
 
 ap_pid=$!
 
