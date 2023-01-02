@@ -25,7 +25,7 @@ public class CachedTimeResource {
     @Scheduled(every = "1s")
     public void updateTime() {
         var tick = new TimeResource.Tick(ZONE_ID, timeService.time());
-        if (time == null) {
+        if (time.isDone()) {
             time = CompletableFuture.completedFuture(tick);
         } else {
             time.complete(tick);
