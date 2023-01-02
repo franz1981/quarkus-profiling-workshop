@@ -1,4 +1,4 @@
-package profiling.workshop;
+package profiling.workshop.time;
 
 import javax.inject.Singleton;
 import java.util.OptionalLong;

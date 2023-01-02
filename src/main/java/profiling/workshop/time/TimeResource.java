@@ -1,4 +1,4 @@
-package profiling.workshop;
+package profiling.workshop.time;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
@@ -15,7 +15,7 @@ import java.util.Locale;
 public class TimeResource {
 
     @Inject
-    private TimeService service;
+    TimeService service;
 
     @RegisterForReflection
     public record Tick(String zoneId, long utcTime) { }

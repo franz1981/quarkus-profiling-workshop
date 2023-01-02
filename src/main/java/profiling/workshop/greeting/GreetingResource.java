@@ -1,4 +1,4 @@
-package profiling.workshop;
+package profiling.workshop.greeting;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
