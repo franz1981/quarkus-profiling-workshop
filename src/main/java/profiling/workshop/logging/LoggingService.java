@@ -1,7 +1,5 @@
 package profiling.workshop.logging;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
@@ -12,26 +10,20 @@ import javax.inject.Singleton;
 @Singleton
 public class LoggingService {
 
-    private static Logger logger = Logger.getLogger(LoggingService.class.getName());
+    private volatile boolean finest;
 
-    static {
-        ConsoleHandler handler = new ConsoleHandler();
-        handler.setFormatter(new MyFormatter());
-        logger.addHandler(handler);
+    public boolean isFinest() {
+        return finest;
     }
 
-    public void log(String msg) {
-        logger.log(Level.SEVERE, String.format("Your var is [%s] and you are [%s]", "uno", "due"));
+    public void finest(boolean value) {
+        finest = value;
     }
 
-    public static void main(String[] args) {
-        new LoggingService().log("test");
-    }
-
-    private static class MyFormatter extends SimpleFormatter {
-        @Override
-        public String format(LogRecord record) {
-            return super.format(record);
+    public void finest(String... msgs) {
+        final String formatted = String.format("This is finest: [%s]", msgs);
+        if (finest) {
+            System.err.println(formatted);
         }
     }
 }
