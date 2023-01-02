@@ -18,19 +18,7 @@ public class TimeResource {
     private TimeService service;
 
     @RegisterForReflection
-    public static class Tick {
-
-        public String zoneId;
-        public long utcTime;
-
-        public Tick() {
-        }
-
-        public Tick(String zoneId, long utcTime) {
-            this.zoneId = zoneId;
-            this.utcTime = utcTime;
-        }
-    }
+    public record Tick(String zoneId, long utcTime) { }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)

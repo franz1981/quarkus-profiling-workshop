@@ -61,12 +61,12 @@ Why Hyperfoil? https://www.slideshare.net/InfoQ/how-not-to-measure-latency-60111
 
 Download and unzip the generator:
 ```bash
-wget https://github.com/Hyperfoil/Hyperfoil/releases/download/release-0.24/hyperfoil-0.24.zip \
-    && unzip hyperfoil-0.24.zip \
-    && cd hyperfoil-0.24
+wget https://github.com/Hyperfoil/Hyperfoil/releases/download/release-0.23/hyperfoil-0.23.zip \
+    && unzip hyperfoil-0.23.zip \
+    && cd hyperfoil-0.23
 ```
 
-From within the hyperfoil's `/bin` folder and ssuming the Quarkus hello world endpoint to be up and running:
+From within the hyperfoil's `/bin` folder and assuming the Quarkus hello world endpoint to be up and running:
 ```bash
 [hyperfoil@in-vm]$ wrk -t 1 -c 10 -d 10s http://localhost:8080/hello
 ```

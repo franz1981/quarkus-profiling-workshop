@@ -1,5 +1,7 @@
 #!/bin/bash
 
+HYPERFOIL_HOME=~/software/hyperfoil-0.23
+
 URL=hello
 
 DURATION=10
@@ -52,11 +54,11 @@ echo "Warming-up endpoint"
 
 # warm it up, it's fine if it's blocking and max speed
 
-hyperfoil-0.23/bin/wrk.sh -c 10 -t 1 -d ${DURATION}s ${FULL_URL}
+${HYPERFOIL_HOME}/bin/wrk.sh -c 10 -t 1 -d ${DURATION}s ${FULL_URL}
 
 echo "Warmup completed: start test and profiling"
 
-hyperfoil-0.23/bin/wrk.sh -c 10 -t 1 -d ${DURATION}s ${FULL_URL} &
+${HYPERFOIL_HOME}/bin/wrk.sh -c 10 -t 1 -d ${DURATION}s ${FULL_URL} &
 
 wrk_pid=$!
 
