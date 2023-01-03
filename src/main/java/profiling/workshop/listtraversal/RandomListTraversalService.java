@@ -11,11 +11,11 @@ import javax.inject.Singleton;
 @Singleton
 public class RandomListTraversalService {
 
-    private static int LIST_SIZE = 1_000_000;
+    private static final int LIST_SIZE = 1_000_000;
 
-    private static Collection<Integer> indexes = generateIndexes(false);
+    private static final List<Integer> indexes = generateIndexes(false);
 
-    private static List<Integer> values = new ArrayList<>(LIST_SIZE);
+    private static final List<Integer> values = new ArrayList<>(LIST_SIZE);
 
     @PostConstruct
     public void initLists() {
@@ -24,7 +24,7 @@ public class RandomListTraversalService {
         }
     }
 
-    private static Collection<Integer> generateIndexes(boolean sequential) {
+    private static List<Integer> generateIndexes(boolean sequential) {
         if (sequential) {
             List<Integer> list = new ArrayList<>();
             for (int i = 0; i < LIST_SIZE; i++) {
@@ -36,7 +36,7 @@ public class RandomListTraversalService {
             for (int i = 0; i < LIST_SIZE; i++) {
                 map.put("" + i, i);
             }
-            return map.values();
+            return new ArrayList<>(map.values());
         }
     }
 
