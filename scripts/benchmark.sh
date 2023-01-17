@@ -70,8 +70,6 @@ java -jar ap-loader-all.jar profiler -e ${EVENT} -t -d ${PROFILING} -f ${quarkus
 
 ap_pid=$!
 
-wait $!
-
 echo "Showing pidstat for $WARMUP seconds"
 
 pidstat -p $quarkus_pid 1 &
