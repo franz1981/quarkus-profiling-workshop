@@ -13,6 +13,8 @@ FORMAT=html
 
 JFR=false
 
+JFR_ARGS=
+
 while getopts ":u::e::f::d::j:" option; do
    case $option in
       u) URL=${OPTARG}
@@ -43,11 +45,15 @@ if [ "$current_value" -ne 1 ]; then
   sudo sysctl kernel.kptr_restrict=0
 fi
 
+if [ "${JFR}" = true ]; then
+   JFR_ARGS=-XX:+FlightRecorder
+fi
+
 trap 'echo "cleaning up quarkus process";kill ${quarkus_pid}' SIGINT SIGTERM SIGKILL
 
 # let's run it with a single thread, is simpler!
 # TODO cmd can be extracted and become a run-quarkus.sh script per-se
-java -XX:+FlightRecorder -Dquarkus.vertx.event-loops-pool-size=1 -XX:+UnlockDiagnosticVMOptions -XX:+DebugNonSafepoints -jar ../target/quarkus-app/quarkus-run.jar &
+java ${JFR_ARGS} -Dquarkus.vertx.event-loops-pool-size=1 -XX:+UnlockDiagnosticVMOptions -XX:+DebugNonSafepoints -jar ../target/quarkus-app/quarkus-run.jar &
 quarkus_pid=$!
 
 sleep 2
