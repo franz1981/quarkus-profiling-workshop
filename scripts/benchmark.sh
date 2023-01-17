@@ -13,9 +13,11 @@ FORMAT=html
 
 JFR=false
 
+THREADS=1
+
 JFR_ARGS=
 
-while getopts ":u::e::f::d::j:" option; do
+while getopts ":u::e::f::d::j::t:" option; do
    case $option in
       u) URL=${OPTARG}
          ;;
@@ -26,6 +28,8 @@ while getopts ":u::e::f::d::j:" option; do
       d) DURATION=${OPTARG}
          ;;
       j) JFR=${OPTARG}
+         ;;
+      t) THREADS=${OPTARG}
          ;;
    esac
 done
@@ -53,7 +57,7 @@ trap 'echo "cleaning up quarkus process";kill ${quarkus_pid}' SIGINT SIGTERM SIG
 
 # let's run it with a single thread, is simpler!
 # TODO cmd can be extracted and become a run-quarkus.sh script per-se
-java ${JFR_ARGS} -Dquarkus.vertx.event-loops-pool-size=1 -XX:+UnlockDiagnosticVMOptions -XX:+DebugNonSafepoints -jar ../target/quarkus-app/quarkus-run.jar &
+java ${JFR_ARGS} -Dquarkus.vertx.event-loops-pool-size=${THREADS} -XX:+UnlockDiagnosticVMOptions -XX:+DebugNonSafepoints -jar ../target/quarkus-app/quarkus-run.jar &
 quarkus_pid=$!
 
 sleep 2
