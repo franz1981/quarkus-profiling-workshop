@@ -11,7 +11,9 @@ EVENT=cpu
 # this can be html or jfr
 FORMAT=html
 
-while getopts ":u::e::f::d:" option; do
+JFR=false
+
+while getopts ":u::e::f::d::j:" option; do
    case $option in
       u) URL=${OPTARG}
          ;;
@@ -20,6 +22,8 @@ while getopts ":u::e::f::d:" option; do
       f) FORMAT=${OPTARG}
          ;;
       d) DURATION=${OPTARG}
+         ;;
+      j) JFR=${OPTARG}
          ;;
    esac
 done
@@ -43,7 +47,7 @@ trap 'echo "cleaning up quarkus process";kill ${quarkus_pid}' SIGINT SIGTERM SIG
 
 # let's run it with a single thread, is simpler!
 # TODO cmd can be extracted and become a run-quarkus.sh script per-se
-java -Dquarkus.vertx.event-loops-pool-size=1 -XX:+UnlockDiagnosticVMOptions -XX:+DebugNonSafepoints -jar ../target/quarkus-app/quarkus-run.jar &
+java -XX:+FlightRecorder -Dquarkus.vertx.event-loops-pool-size=1 -XX:+UnlockDiagnosticVMOptions -XX:+DebugNonSafepoints -jar ../target/quarkus-app/quarkus-run.jar &
 quarkus_pid=$!
 
 sleep 2
@@ -66,7 +70,12 @@ echo "Waiting $WARMUP seconds before profiling for $PROFILING seconds"
 
 sleep $WARMUP
 
-java -jar ap-loader-all.jar profiler -e ${EVENT} -t -d ${PROFILING} -f ${quarkus_pid}_${EVENT}.${FORMAT} $quarkus_pid &
+if [ "${JFR}" = true ]
+then
+  jcmd $quarkus_pid JFR.start duration=${PROFILING}s filename=${quarkus_pid}.jfr dumponexit=true settings=profile
+else
+  java -jar ap-loader-all.jar profiler -e ${EVENT} -t -d ${PROFILING} -f ${quarkus_pid}_${EVENT}.${FORMAT} $quarkus_pid &
+fi
 
 ap_pid=$!
 
