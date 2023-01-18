@@ -55,7 +55,7 @@ FULL_URL=http://localhost:8080/${URL}
 echo "Benchmarking endpoint ${FULL_URL}"
 
 # set sysctl kernel variables only if necessary
-if [[ "$OSTYPE" == "linux-gnu" ]]
+if [[ "$OSTYPE" == "linux-gnu" ]]; then
   current_value=$(sysctl -n kernel.perf_event_paranoid)
   if [ "$current_value" -ne 1 ]; then
     sudo sysctl kernel.perf_event_paranoid=1
