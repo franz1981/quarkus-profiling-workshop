@@ -15,11 +15,13 @@ JFR=false
 
 THREADS=1
 
+RATE=0
+
 CONNECTIONS=10
 
 JFR_ARGS=
 
-while getopts ":u::e::f::d::j::t::c:" option; do
+while getopts ":u::e::f::d::j::t::r::c:" option; do
    case $option in
       u) URL=${OPTARG}
          ;;
@@ -33,7 +35,9 @@ while getopts ":u::e::f::d::j::t::c:" option; do
          ;;
       t) THREADS=${OPTARG}
          ;;
-      c) CONNECTIONS=${OPTARGS}
+      r) RATE=${OPTARG}
+         ;;
+      c) CONNECTIONS=${OPTARG}
          ;;
    esac
 done
@@ -66,17 +70,22 @@ quarkus_pid=$!
 
 sleep 2
 
-echo "Quarkus running at pid $quarkus_pid"
+echo "Quarkus running at pid $quarkus_pid using ${THREADS} I/O threads"
 
 echo "Warming-up endpoint"
 
 # warm it up, it's fine if it's blocking and max speed
 
-${HYPERFOIL_HOME}/bin/wrk.sh -c ${CONNECTIONS} -t 1 -d ${DURATION}s ${FULL_URL}
+${HYPERFOIL_HOME}/bin/wrk.sh -c 10 -t 1 -d ${DURATION}s ${FULL_URL}
 
-echo "Warmup completed: start test and profiling"
-
-${HYPERFOIL_HOME}/bin/wrk.sh -c ${CONNECTIONS} -t 1 -d ${DURATION}s ${FULL_URL} &
+if [ "${RATE}" != "0" ]
+then
+  echo "Warmup completed: start fixed rate test at ${RATE} requests/sec and profiling"
+  ${HYPERFOIL_HOME}/bin/wrk2.sh -R ${RATE} -c ${CONNECTIONS} -t 1 -d ${DURATION}s ${FULL_URL} &
+else
+  echo "Warmup completed: start all-out test and profiling"
+  ${HYPERFOIL_HOME}/bin/wrk.sh -c ${CONNECTIONS} -t 1 -d ${DURATION}s ${FULL_URL} &
+fi
 
 wrk_pid=$!
 
