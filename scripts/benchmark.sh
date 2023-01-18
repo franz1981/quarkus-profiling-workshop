@@ -52,7 +52,7 @@ PROFILING=$((${DURATION}/2))
 
 FULL_URL=http://localhost:8080/${URL}
 
-echo "Benchmarking endpoint ${FULL_URL}"
+echo "----- Benchmarking endpoint ${FULL_URL}"
 
 # set sysctl kernel variables only if necessary
 if [[ "$OSTYPE" == "linux-gnu" ]]; then
@@ -76,56 +76,62 @@ quarkus_pid=$!
 
 sleep 2
 
-echo "Quarkus running at pid $quarkus_pid using ${THREADS} I/O threads"
+echo "----- Quarkus running at pid $quarkus_pid using ${THREADS} I/O threads"
 
-echo "Warming-up endpoint"
-
-# warm it up, it's fine if it's blocking and max speed
+echo "----- Warming-up endpoint"
 
 ${HYPERFOIL_HOME}/bin/wrk.sh -c 10 -t 1 -d ${DURATION}s ${FULL_URL}
 
 if [ "${RATE}" != "0" ]
 then
-  echo "Warmup completed: start fixed rate test at ${RATE} requests/sec and profiling"
+  echo "----- Warmup completed: start fixed rate test at ${RATE} requests/sec and profiling"
   ${HYPERFOIL_HOME}/bin/wrk2.sh -R ${RATE} -c ${CONNECTIONS} -t 1 -d ${DURATION}s ${FULL_URL} &
 else
-  echo "Warmup completed: start all-out test and profiling"
+  echo "----- Warmup completed: start all-out test and profiling"
   ${HYPERFOIL_HOME}/bin/wrk.sh -c ${CONNECTIONS} -t 1 -d ${DURATION}s ${FULL_URL} &
 fi
 
 wrk_pid=$!
 
-echo "Waiting $WARMUP seconds before profiling for $PROFILING seconds"
+echo "----- Waiting $WARMUP seconds before profiling for $PROFILING seconds"
 
 sleep $WARMUP
 
+# Format time replacing spaces with underscores
+NOW=$(date);NOW=${NOW// /_};
+
 if [ "${JFR}" = true ]
 then
-  jcmd $quarkus_pid JFR.start duration=${PROFILING}s filename=${quarkus_pid}.jfr dumponexit=true settings=profile
+  jcmd $quarkus_pid JFR.start duration=${PROFILING}s filename=${NOW}_${quarkus_pid}.jfr dumponexit=true settings=profile
 else
-  echo "Starting async-profiler on $quarkus_pid"
-  java -jar ap-loader-all.jar profiler -e ${EVENT} -t -d ${PROFILING} -f ${quarkus_pid}_${EVENT}.${FORMAT} $quarkus_pid &
+  echo "----- Starting async-profiler on $quarkus_pid"
+  java -jar ap-loader-all.jar profiler -e ${EVENT} -t -d ${PROFILING} -f ${NOW}_${quarkus_pid}_${EVENT}.${FORMAT} $quarkus_pid &
 fi
 
 ap_pid=$!
 
 if [ "${PERF}" = true ]; then
-  echo "Starting perf stat on $quarkus_pid"
+  echo "----- Collecting perf stat on $quarkus_pid"
   perf stat -d -p $quarkus_pid &
   stat_pid=$!
 fi
 
-echo "Showing pidstat for $WARMUP seconds"
+echo "----- Showing stats for $WARMUP seconds"
 
-pidstat -p $quarkus_pid 1 &
+if [[ "$OSTYPE" == "linux-gnu" ]]; then
+  pidstat -p $quarkus_pid 1 &
+  pidstat_pid=$!
+  sleep $WARMUP
+  kill -SIGTERM $pidstat_pid
+else
+  # Print stats header
+  ps -p $quarkus_pid -o %cpu,rss,maj_flt,min_flt,rss,vsz | head -1
+  sleep 1;
+  # Print stats
+  for (( i=1; i<$WARMUP; i++ )); do ps -p $quarkus_pid -o %cpu,rss,maj_flt,min_flt,rss,vsz | tail -1;sleep 1;done;
+fi
 
-pidstat_pid=$!
-
-sleep $WARMUP
-
-kill -SIGTERM $pidstat_pid
-
-echo "Stopping pidstat, waiting load to complete"
+echo "----- Stopped stats, waiting load to complete"
 
 wait $ap_pid
 
@@ -135,6 +141,6 @@ fi
 
 wait $wrk_pid
 
-echo "Profiling and workload completed: killing server"
+echo "----- Profiling and workload completed: killing server"
 
 kill -SIGTERM $quarkus_pid
