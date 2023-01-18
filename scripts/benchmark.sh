@@ -21,7 +21,9 @@ CONNECTIONS=10
 
 JFR_ARGS=
 
-while getopts ":u::e::f::d::j::t::r::c:" option; do
+PERF=false
+
+while getopts ":u::e::f::d::j::t::r::c:p" option; do
    case $option in
       u) URL=${OPTARG}
          ;;
@@ -39,6 +41,8 @@ while getopts ":u::e::f::d::j::t::r::c:" option; do
          ;;
       c) CONNECTIONS=${OPTARG}
          ;;
+      p) PERF=true
+         ;;
    esac
 done
 
@@ -48,7 +52,7 @@ PROFILING=$((${DURATION}/2))
 
 FULL_URL=http://localhost:8080/${URL}
 
-echo "Benchmarking endpoint ${FULL_URL}..."
+echo "Benchmarking endpoint ${FULL_URL}"
 
 # set sysctl kernel variables only if necessary
 current_value=$(sysctl -n kernel.perf_event_paranoid)
@@ -97,10 +101,17 @@ if [ "${JFR}" = true ]
 then
   jcmd $quarkus_pid JFR.start duration=${PROFILING}s filename=${quarkus_pid}.jfr dumponexit=true settings=profile
 else
+  echo "Starting async-profiler on $quarkus_pid"
   java -jar ap-loader-all.jar profiler -e ${EVENT} -t -d ${PROFILING} -f ${quarkus_pid}_${EVENT}.${FORMAT} $quarkus_pid &
 fi
 
 ap_pid=$!
+
+if [ "${PERF}" = true ]; then
+  echo "Starting perf stat on $quarkus_pid"
+  perf stat -d -p $quarkus_pid &
+  stat_pid=$!
+fi
 
 echo "Showing pidstat for $WARMUP seconds"
 
@@ -112,10 +123,16 @@ sleep $WARMUP
 
 kill -SIGTERM $pidstat_pid
 
+echo "Stopping pidstat, waiting load to complete"
+
+wait $ap_pid
+
+if [ "${PERF}" = true ]; then
+  kill -SIGINT $stat_pid
+fi
+
 wait $wrk_pid
 
 echo "Profiling and workload completed: killing server"
 
 kill -SIGTERM $quarkus_pid
-
-
