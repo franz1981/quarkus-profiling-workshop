@@ -8,16 +8,16 @@ import javax.ws.rs.core.MediaType;
 
 import io.smallrye.common.annotation.NonBlocking;
 
-@Path("/list/random")
-public class RandomListTraversalResource {
+@Path("/persons/agesum")
+public class PersonTraversalResource {
 
     @Inject
-    RandomListTraversalService service;
+    PersonsTraversalService service;
 
     @GET
     @Produces(MediaType.TEXT_PLAIN)
     @NonBlocking
-    public long sum() {
-        return service.getResultWithTraversal();
+    public int sum() {
+        return service.getAgeSum();
     }
 }
