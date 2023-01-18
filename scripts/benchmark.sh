@@ -4,7 +4,7 @@ HYPERFOIL_HOME=./hyperfoil-0.23
 
 URL=hello
 
-DURATION=10
+DURATION=20
 
 EVENT=cpu
 
@@ -15,9 +15,11 @@ JFR=false
 
 THREADS=1
 
+CONNECTIONS=10
+
 JFR_ARGS=
 
-while getopts ":u::e::f::d::j::t:" option; do
+while getopts ":u::e::f::d::j::t::c:" option; do
    case $option in
       u) URL=${OPTARG}
          ;;
@@ -30,6 +32,8 @@ while getopts ":u::e::f::d::j::t:" option; do
       j) JFR=${OPTARG}
          ;;
       t) THREADS=${OPTARG}
+         ;;
+      c) CONNECTIONS=${OPTARGS}
          ;;
    esac
 done
@@ -68,11 +72,11 @@ echo "Warming-up endpoint"
 
 # warm it up, it's fine if it's blocking and max speed
 
-${HYPERFOIL_HOME}/bin/wrk.sh -c 10 -t 1 -d ${DURATION}s ${FULL_URL}
+${HYPERFOIL_HOME}/bin/wrk.sh -c ${CONNECTIONS} -t 1 -d ${DURATION}s ${FULL_URL}
 
 echo "Warmup completed: start test and profiling"
 
-${HYPERFOIL_HOME}/bin/wrk.sh -c 10 -t 1 -d ${DURATION}s ${FULL_URL} &
+${HYPERFOIL_HOME}/bin/wrk.sh -c ${CONNECTIONS} -t 1 -d ${DURATION}s ${FULL_URL} &
 
 wrk_pid=$!
 
