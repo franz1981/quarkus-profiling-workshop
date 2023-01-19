@@ -23,8 +23,46 @@ JFR_ARGS=
 
 PERF=false
 
-while getopts ":u::e::f::d::j::t::r::c:p" option; do
+Help()
+{
+   # Display Help
+   echo "Syntax: benchmark [OPTIONS]"
+   echo "options:"
+   echo "h    Display this guide."
+   echo ""
+   echo "u    Final part of the URL to benchmark."
+   echo "     e.g. benchmark -u time would benchmark http://localhost:8080/time"
+   echo "     default is hello"
+   echo ""
+   echo "e    event to profile, if supported e.g. -e cpu "
+   echo "     check https://github.com/jvm-profiling-tools/async-profiler#profiler-options for the complete list"
+   echo "     default is cpu"
+   echo ""
+   echo "f    output format, if supported by the profiler. e.g. async-profiler support html,jfr,collapsed"
+   echo "     default is html"
+   echo ""
+   echo "d    duration of the load generation phase, in seconds"
+   echo "     default is 20"
+   echo ""
+   echo "j    if specified, it uses JFR profiling. async-profiler otherwise."
+   echo ""
+   echo "t    number of I/O threads of the quarkus application."
+   echo ""
+   echo "     default is 1"
+   echo ""
+   echo "r    rate of the load generation phase, in requests/sec."
+   echo "     default not specified (0)"
+   echo ""
+   echo "c    number of connections used by the load generator."
+   echo "     default is 10"
+   echo ""
+   echo "p    if specified, run perf stat together with the selected profiler. Only GNU Linux."
+}
+
+while getopts "hu::e::f::d::jt::r::c:p" option; do
    case $option in
+      h) Help
+         exit;;
       u) URL=${OPTARG}
          ;;
       e) EVENT=${OPTARG}
@@ -33,7 +71,7 @@ while getopts ":u::e::f::d::j::t::r::c:p" option; do
          ;;
       d) DURATION=${OPTARG}
          ;;
-      j) JFR=${OPTARG}
+      j) JFR=true
          ;;
       t) THREADS=${OPTARG}
          ;;
@@ -97,15 +135,14 @@ echo "----- Waiting $WARMUP seconds before profiling for $PROFILING seconds"
 
 sleep $WARMUP
 
-# Format time replacing spaces with underscores
-NOW=$(date);NOW=${NOW// /_};
+NOW=$(date "+%y%m%d_%H_%M_%S")
 
 if [ "${JFR}" = true ]
 then
-  jcmd $quarkus_pid JFR.start duration=${PROFILING}s filename=${NOW}_${quarkus_pid}.jfr dumponexit=true settings=profile
+  jcmd $quarkus_pid JFR.start duration=${PROFILING}s filename=${NOW}.jfr dumponexit=true settings=profile
 else
   echo "----- Starting async-profiler on $quarkus_pid"
-  java -jar ap-loader-all.jar profiler -e ${EVENT} -t -d ${PROFILING} -f ${NOW}_${quarkus_pid}_${EVENT}.${FORMAT} $quarkus_pid &
+  java -jar ap-loader-all.jar profiler -e ${EVENT} -t -d ${PROFILING} -f ${NOW}_${EVENT}.${FORMAT} $quarkus_pid &
 fi
 
 ap_pid=$!
