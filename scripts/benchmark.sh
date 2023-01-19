@@ -162,10 +162,10 @@ if [[ "$OSTYPE" == "linux-gnu" ]]; then
   kill -SIGTERM $pidstat_pid
 else
   # Print stats header
-  ps -p $quarkus_pid -o %cpu,rss,maj_flt,min_flt,rss,vsz | head -1
+  ps -p $quarkus_pid -o %cpu,rss,vsz | head -1
   sleep 1;
   # Print stats
-  for (( i=1; i<$WARMUP; i++ )); do ps -p $quarkus_pid -o %cpu,rss,maj_flt,min_flt,rss,vsz | tail -1;sleep 1;done;
+  for (( i=1; i<$WARMUP; i++ )); do ps -p $quarkus_pid -o %cpu,rss,vsz | tail -1;sleep 1;done;
 fi
 
 echo "----- Stopped stats, waiting load to complete"
