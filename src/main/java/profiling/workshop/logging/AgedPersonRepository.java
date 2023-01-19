@@ -28,9 +28,9 @@ public class AgedPersonRepository {
 
     @PostConstruct
     public void init() {
-        final Person[] persons = new Person[MAX_AGE - 1];
+        final Person[] persons = new Person[MAX_AGE];
         final short oldestBirthYear = (short) (Year.now().getValue() - MAX_AGE);
-        for (int i = 0; i < (MAX_AGE - 1); i++) {
+        for (int i = 0; i < MAX_AGE; i++) {
             final short birthYear = (short) (oldestBirthYear + i);
             persons[i] = new Person(i + 1, UUID.randomUUID().toString(), birthYear);
         }
