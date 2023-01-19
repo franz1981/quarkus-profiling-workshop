@@ -1,10 +1,5 @@
 package profiling.workshop.logging;
 
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Level;
-import java.util.logging.LogRecord;
-import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
 import javax.inject.Singleton;
 
 @Singleton
@@ -20,8 +15,8 @@ public class LoggingService {
         finest = value;
     }
 
-    public void finest(String... msgs) {
-        final String formatted = String.format("This is finest: [%s]", msgs);
+    public void finest(String msg, Object... args) {
+        final String formatted = String.format(msg, args);
         if (finest) {
             System.err.println(formatted);
         }
