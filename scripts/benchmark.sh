@@ -118,7 +118,7 @@ echo "----- Quarkus running at pid $quarkus_pid using ${THREADS} I/O threads"
 
 echo "----- Warming-up endpoint"
 
-${HYPERFOIL_HOME}/bin/wrk.sh -c 10 -t 1 -d ${DURATION}s ${FULL_URL}
+${HYPERFOIL_HOME}/bin/wrk.sh -c ${CONNECTIONS} -t ${THREADS} -d ${DURATION}s ${FULL_URL}
 
 if [ "${RATE}" != "0" ]
 then
@@ -141,7 +141,10 @@ if [ "${JFR}" = true ]
 then
   jcmd $quarkus_pid JFR.start duration=${PROFILING}s filename=${NOW}.jfr dumponexit=true settings=profile
 else
-  echo "----- Starting async-profiler on $quarkus_pid"
+  wrk_jvm_pid=`jps | grep Wrk | awk '{print $1}'`
+  echo "----- Starting async-profiler on load generator process ($wrk_jvm_pid)"
+  java -jar ap-loader-all.jar profiler -e ${EVENT} -t -d ${PROFILING} -f wrk_${NOW}_${EVENT}.${FORMAT} $wrk_jvm_pid &
+  echo "----- Starting async-profiler on quarkus application ($quarkus_pid)"
   java -jar ap-loader-all.jar profiler -e ${EVENT} -t -d ${PROFILING} -f ${NOW}_${EVENT}.${FORMAT} $quarkus_pid &
 fi
 
