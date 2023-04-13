@@ -4,7 +4,7 @@ HYPERFOIL_HOME=./hyperfoil-0.24
 
 URL=hello
 
-DURATION=20
+DURATION=40
 
 EVENT=cpu
 
@@ -13,7 +13,7 @@ FORMAT=html
 
 JFR=false
 
-THREADS=1
+THREADS=2
 
 RATE=0
 
@@ -116,17 +116,13 @@ sleep 2
 
 echo "----- Quarkus running at pid $quarkus_pid using ${THREADS} I/O threads"
 
-echo "----- Warming-up endpoint"
-
-${HYPERFOIL_HOME}/bin/wrk.sh -c ${CONNECTIONS} -t ${THREADS} -d ${DURATION}s ${FULL_URL}
-
 if [ "${RATE}" != "0" ]
 then
-  echo "----- Warmup completed: start fixed rate test at ${RATE} requests/sec and profiling"
-  ${HYPERFOIL_HOME}/bin/wrk2.sh -R ${RATE} -c ${CONNECTIONS} -t 1 -d ${DURATION}s ${FULL_URL} &
+  echo "----- Start fixed rate test at ${RATE} requests/sec and profiling"
+  ${HYPERFOIL_HOME}/bin/wrk2.sh -R ${RATE} -c ${CONNECTIONS} -t ${THREADS} -d ${DURATION}s ${FULL_URL} &
 else
-  echo "----- Warmup completed: start all-out test and profiling"
-  ${HYPERFOIL_HOME}/bin/wrk.sh -c ${CONNECTIONS} -t 1 -d ${DURATION}s ${FULL_URL} &
+  echo "----- Start all-out test and profiling"
+  ${HYPERFOIL_HOME}/bin/wrk.sh -c ${CONNECTIONS} -t ${THREADS} -d ${DURATION}s ${FULL_URL} &
 fi
 
 wrk_pid=$!
