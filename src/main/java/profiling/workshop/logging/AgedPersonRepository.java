@@ -39,11 +39,10 @@ public class AgedPersonRepository {
 
     public Collection<Person> withAgeEqualsTo(int age) {
         final List<Person> sameAgePersons = persons.stream()
-                .filter(person -> {
-                    log.finest("Filtering person %s with age %d", person, person.age());
-                    return person.age() == age;
-                })
+                .peek( person -> log.finest("Filtering person %s with age %d", person, person.age()) )
+                .filter( person -> person.age() == age )
                 .collect(Collectors.toList());
+
         sameAgePersons.forEach(p -> log.finest("Found person %s with age %d", p, p.age()));
         return sameAgePersons;
     }
