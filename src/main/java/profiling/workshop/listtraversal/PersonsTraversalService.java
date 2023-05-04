@@ -1,7 +1,5 @@
 package profiling.workshop.listtraversal;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -23,7 +21,7 @@ public class PersonsTraversalService {
     }
 
     public int getAgeSum() {
-        return persons.stream().mapToInt(Person::getAge).sum();
+        return persons.stream().mapToInt(Person::age).sum();
     }
 
 }
