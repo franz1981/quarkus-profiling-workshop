@@ -1,8 +1,8 @@
 package profiling.workshop.logging;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import java.time.Year;
 import java.util.Collection;
 import java.util.List;

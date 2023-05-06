@@ -1,6 +1,6 @@
 package profiling.workshop.allocation;
 
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.IntStream;
 

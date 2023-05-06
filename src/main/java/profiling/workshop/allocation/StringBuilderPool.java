@@ -2,7 +2,7 @@ package profiling.workshop.allocation;
 
 import io.vertx.core.Context;
 
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 
 @Singleton
 public class StringBuilderPool {

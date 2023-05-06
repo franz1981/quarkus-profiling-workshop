@@ -3,8 +3,8 @@ package profiling.workshop.listtraversal;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Stream;
-import javax.annotation.PostConstruct;
-import javax.inject.Singleton;
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Singleton;
 
 @Singleton
 public class PersonsTraversalService {

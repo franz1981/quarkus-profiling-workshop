@@ -1,6 +1,6 @@
 package profiling.workshop.logging;
 
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 
 @Singleton
 public class LoggingService {

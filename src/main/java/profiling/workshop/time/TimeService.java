@@ -1,6 +1,6 @@
 package profiling.workshop.time;
 
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 import java.util.OptionalLong;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
