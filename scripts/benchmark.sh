@@ -1,6 +1,6 @@
 #!/bin/bash
 
-HYPERFOIL_HOME=./hyperfoil-0.24
+HYPERFOIL_HOME=./hyperfoil
 
 URL=hello
 
@@ -22,6 +22,8 @@ CONNECTIONS=10
 JFR_ARGS=
 
 PERF=false
+
+WRK_PROFILING=false
 
 Help()
 {
@@ -137,9 +139,12 @@ if [ "${JFR}" = true ]
 then
   jcmd $quarkus_pid JFR.start duration=${PROFILING}s filename=${NOW}.jfr dumponexit=true settings=profile
 else
-  wrk_jvm_pid=`jps | grep Wrk | awk '{print $1}'`
-  echo "----- Starting async-profiler on load generator process ($wrk_jvm_pid)"
-  java -jar ap-loader-all.jar profiler -e ${EVENT} -t -d ${PROFILING} -f wrk_${NOW}_${EVENT}.${FORMAT} $wrk_jvm_pid &
+  if [ "${WRK_PROFILING}" = true ]; then
+     JFR_ARGS=-XX:+FlightRecorder
+     wrk_jvm_pid=`jps | grep Wrk | awk '{print $1}'`
+     echo "----- Starting async-profiler on load generator process ($wrk_jvm_pid)"
+     java -jar ap-loader-all.jar profiler -e ${EVENT} -t -d ${PROFILING} -f wrk_${NOW}_${EVENT}.${FORMAT} $wrk_jvm_pid &
+  fi
   echo "----- Starting async-profiler on quarkus application ($quarkus_pid)"
   java -jar ap-loader-all.jar profiler -e ${EVENT} -t -d ${PROFILING} -f ${NOW}_${EVENT}.${FORMAT} $quarkus_pid &
 fi
