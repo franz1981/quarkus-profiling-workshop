@@ -25,6 +25,11 @@ PERF=false
 
 WRK_PROFILING=false
 
+die () {
+    echo "$*"
+    exit 1
+}
+
 Help()
 {
    # Display Help
@@ -85,6 +90,14 @@ while getopts "hu::e::f::d::jt::r::c:p" option; do
          ;;
    esac
 done
+
+if ! [[ -f benchmark.sh ]]; then
+    die "error: should be run from the scripts/ directory"
+fi
+
+if ! [[ -f ${HYPERFOIL_HOME} ]]; then
+    die "error: hyperfoil is missing (should be installed in ${HYPERFOIL_HOME})"
+fi
 
 WARMUP=$((${DURATION}*2/5))
 
