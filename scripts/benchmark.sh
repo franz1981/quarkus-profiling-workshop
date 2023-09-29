@@ -1,6 +1,6 @@
 #!/bin/bash
 
-HYPERFOIL_HOME=./hyperfoil-0.24
+HYPERFOIL_HOME=./hyperfoil
 
 URL=hello
 
@@ -93,10 +93,6 @@ done
 
 if ! [[ -f benchmark.sh ]]; then
     die "error: should be run from the scripts/ directory"
-fi
-
-if ! [[ -f ${HYPERFOIL_HOME} ]]; then
-    die "error: hyperfoil is missing (should be installed in ${HYPERFOIL_HOME})"
 fi
 
 WARMUP=$((${DURATION}*2/5))
