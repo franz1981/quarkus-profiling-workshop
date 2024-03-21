@@ -1,0 +1,128 @@
+3.2.1.Final:
+
+finished in 40.00s, 111047.20 req/s, 11.33MB/s
+requests: 4441888 total, 4441908 started, 4441888 done, 4441888 succeeded, 0 failed, 0 errored, 0 timeout
+status codes: 4441888 2xx, 0 3xx, 0 4xx, 0 5xx
+traffic: 453.26MB (475282016) total, 220.28MB (230978644) headers (space savings 0.00%), 118.61MB (124373116) data
+                     min         max         mean         sd        +/- sd
+time for request:       65us     47.98ms       182us       133us    93.90%
+time for connect:        3us        59us        29us        17us    60.00%
+time to 1st byte:    42.26ms     47.99ms     45.41ms      1.67ms    60.00%
+req/s           :    5376.10     5664.56     5552.33       80.20    60.00%
+----- Profiling and workload completed: killing server
+
+
+3.2.1.Final + Netty epoll:
+
+finished in 40.00s, 103008.25 req/s, 10.51MB/s
+requests: 4120330 total, 4120350 started, 4120330 done, 4120330 succeeded, 0 failed, 0 errored, 0 timeout
+status codes: 4120330 2xx, 0 3xx, 0 4xx, 0 5xx
+traffic: 420.45MB (440875310) total, 204.33MB (214257836) headers (space savings 0.00%), 110.03MB (115369604) data
+                     min         max         mean         sd        +/- sd
+time for request:      107us     48.62ms       195us       150us    99.56%
+time for connect:        2us        59us        29us        17us    60.00%
+time to 1st byte:    42.92ms     48.63ms     46.10ms      1.67ms    60.00%
+req/s           :    5150.09     5150.74     5150.38        0.20    60.00%
+
+
+3.8.3.Final + Netty epoll: check security_file_permission
+
+finished in 40.00s, 115063.85 req/s, 11.74MB/s
+requests: 4602554 total, 4602574 started, 4602554 done, 4602554 succeeded, 0 failed, 0 errored, 0 timeout
+status codes: 4602554 2xx, 0 3xx, 0 4xx, 0 5xx
+traffic: 469.66MB (492473278) total, 228.25MB (239333328) headers (space savings 0.00%), 122.90MB (128871792) data
+                     min         max         mean         sd        +/- sd
+time for request:       94us     44.02ms       174us       136us    99.42%
+time for connect:        3us        59us        29us        18us    55.00%
+time to 1st byte:    38.52ms     44.03ms     41.53ms      1.63ms    60.00%
+req/s           :    5751.94     5755.21     5753.17        0.96    75.00%
+
+
+3.8.3.Final + Netty epoll pipeling = 16:
+
+finished in 40.00s, 478468.00 req/s, 48.82MB/s
+requests: 19138720 total, 19139040 started, 19138720 done, 19138720 succeeded, 0 failed, 0 errored, 0 timeout
+status codes: 19138720 2xx, 0 3xx, 0 4xx, 0 5xx
+traffic: 1.91GB (2047843040) total, 949.11MB (995215104) headers (space savings 0.00%), 511.06MB (535885056) data
+                     min         max         mean         sd        +/- sd
+time for request:      229us     88.17ms       696us       705us    99.13%
+time for connect:        3us       102us        50us        31us    60.00%
+time to 1st byte:    44.54ms     88.17ms     69.56ms     13.43ms    60.00%
+req/s           :   23922.65    23923.90    23923.29        0.32    85.00%
+
+3.2.1.Final + Netty epoll pipeling = 16:
+
+finished in 40.00s, 429855.20 req/s, 43.86MB/s
+requests: 17194208 total, 17194528 started, 17194208 done, 17194208 succeeded, 0 failed, 0 errored, 0 timeout
+status codes: 17194208 2xx, 0 3xx, 0 4xx, 0 5xx
+traffic: 1.71GB (1839780256) total, 852.68MB (894100480) headers (space savings 0.00%), 459.14MB (481438720) data
+                     min         max         mean         sd        +/- sd
+time for request:      240us     94.99ms       776us       800us    99.09%
+time for connect:        3us       101us        51us        30us    60.00%
+time to 1st byte:    56.86ms     94.99ms     78.49ms     11.76ms    60.00%
+req/s           :   21492.23    21493.06    21492.65        0.27    50.00%
+
+HTTP 2 3.8.3.Final + Netty epoll pipeling = 16:
+
+finished in 40.00s, 246245.20 req/s, 12.68MB/s
+requests: 9849808 total, 9850128 started, 9849808 done, 9849808 succeeded, 0 failed, 0 errored, 0 timeout
+status codes: 9849808 2xx, 0 3xx, 0 4xx, 0 5xx
+traffic: 507.25MB (531890672) total, 28.18MB (29549984) headers (space savings 95.16%), 263.02MB (275794624) data
+                     min         max         mean         sd        +/- sd
+time for request:      227us    129.05ms      1.32ms      1.23ms    99.31%
+time for connect:       17us       262us       137us        77us    60.00%
+time to 1st byte:    54.80ms    129.32ms     98.35ms     22.22ms    60.00%
+req/s           :   12311.91    12312.78    12312.19        0.26    85.00%
+
+
+HTTP 2 3.2.1.Final + Netty epoll pipeling = 16:
+
+finished in 40.00s, 201031.60 req/s, 10.35MB/s
+requests: 8041264 total, 8041584 started, 8041264 done, 8041264 succeeded, 0 failed, 0 errored, 0 timeout
+status codes: 8041264 2xx, 0 3xx, 0 4xx, 0 5xx
+traffic: 414.11MB (434229296) total, 23.01MB (24124352) headers (space savings 95.16%), 214.72MB (225155392) data
+                     min         max         mean         sd        +/- sd
+time for request:      725us    145.71ms      1.64ms      1.48ms    99.33%
+time for connect:       17us       271us       136us        79us    60.00%
+time to 1st byte:    77.76ms    146.00ms    117.04ms     20.32ms    60.00%
+req/s           :   10051.17    10051.93    10051.53        0.23    65.00%
+
+
+3.8.3.Final + Netty epoll pipelining = 16 TECHEMPOWER OPTIMIZED:
+
+finished in 40.00s, 617398.00 req/s, 63.00MB/s
+requests: 24695920 total, 24696240 started, 24695920 done, 24695920 succeeded, 0 failed, 0 errored, 0 timeout
+status codes: 24695920 2xx, 0 3xx, 0 4xx, 0 5xx
+traffic: 2.46GB (2642463440) total, 1.20GB (1284189504) headers (space savings 0.00%), 659.45MB (691486656) data
+                     min         max         mean         sd        +/- sd
+time for request:      259us     73.07ms       535us       567us    99.54%
+time for connect:        3us       102us        51us        31us    60.00%
+time to 1st byte:    40.03ms     73.07ms     58.48ms     10.28ms    60.00%
+req/s           :   30869.14    30870.25    30869.75        0.32    65.00%
+
+
+HTTP 2 3.8.3.Final + Netty epoll pipelining = 16 TECHEMPOWER OPTIMIZED:
+
+finished in 40.00s, 320776.80 req/s, 16.52MB/s
+requests: 12831072 total, 12831392 started, 12831072 done, 12831072 succeeded, 0 failed, 0 errored, 0 timeout
+status codes: 12831072 2xx, 0 3xx, 0 4xx, 0 5xx
+traffic: 660.78MB (692878928) total, 36.71MB (38493776) headers (space savings 95.16%), 342.63MB (359270016) data
+                     min         max         mean         sd        +/- sd
+time for request:      186us    125.30ms      1.05ms      1.13ms    99.24%
+time for connect:       13us       281us       143us        82us    60.00%
+time to 1st byte:    65.26ms    125.60ms    100.45ms     17.99ms    60.00%
+req/s           :   16038.36    16039.10    16038.76        0.17    80.00%
+
+3.8.3.Final + Netty io_uring pipelining = 16 TECHEMPOWER OPTIMIZED:
+
+finished in 40.00s, 574806.40 req/s, 58.66MB/s
+requests: 22992256 total, 22992576 started, 22992256 done, 22992256 succeeded, 0 failed, 0 errored, 0 timeout
+status codes: 22992256 2xx, 0 3xx, 0 4xx, 0 5xx
+traffic: 2.29GB (2460171392) total, 1.11GB (1195597312) headers (space savings 0.00%), 613.96MB (643783168) data
+                     min         max         mean         sd        +/- sd
+time for request:      225us     69.80ms       597us       638us    99.47%
+time for connect:        4us       104us        51us        31us    60.00%
+time to 1st byte:    69.57ms     69.81ms     69.69ms        71us    65.00%
+req/s           :   28739.47    28741.04    28740.20        0.44    70.00%
+
+
