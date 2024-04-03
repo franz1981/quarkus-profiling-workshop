@@ -1,6 +1,6 @@
 #!/bin/bash
 
-HYPERFOIL_HOME=./hyperfoil
+HYPERFOIL_HOME=${HYPERFOIL_HOME:-./hyperfoil}
 
 URL=hello
 
