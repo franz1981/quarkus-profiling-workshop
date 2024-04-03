@@ -44,3 +44,6 @@ scripts/hyperfoil*
 
 # Ignore html results
 scripts/*.html
+
+# Ignore jfr results
+scripts/*.jfr
