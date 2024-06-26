@@ -55,7 +55,7 @@ Help()
    echo ""
    echo "t    number of I/O threads of the quarkus application."
    echo ""
-   echo "     default is 1"
+   echo "     default is 2"
    echo ""
    echo "r    rate of the load generation phase, in requests/sec."
    echo "     default not specified (0)"
@@ -64,9 +64,12 @@ Help()
    echo "     default is 10"
    echo ""
    echo "p    if specified, run perf stat together with the selected profiler. Only GNU Linux."
+   echo ""
+   echo "w    profile the load generator, Hyperfoil in this case."
+   echo "     default is false"
 }
 
-while getopts "hu::e::f::d::jt::r::c:p" option; do
+while getopts "hu::e::f::d::jt::r::c:p:w" option; do
    case $option in
       h) Help
          exit;;
@@ -87,6 +90,8 @@ while getopts "hu::e::f::d::jt::r::c:p" option; do
       c) CONNECTIONS=${OPTARG}
          ;;
       p) PERF=true
+         ;;
+      w) WRK_PROFILING=true
          ;;
    esac
 done
