@@ -69,7 +69,7 @@ Help()
    echo "     default is false"
 }
 
-while getopts "hu::e::f::d::jt::r::c:p:w" option; do
+while getopts "hu:e:f:d:jt:r:c:pw" option; do
    case $option in
       h) Help
          exit;;
@@ -166,6 +166,11 @@ fi
 ap_pid=$!
 
 if [ "${PERF}" = true ]; then
+  if [ "${WRK_PROFILING}" = true ]; then
+    echo "----- Collecting perf stat on $wrk_jvm_pid"
+    perf stat -d -p "$wrk_jvm_pid" &
+    wrk_stat_pid=$!
+  fi
   echo "----- Collecting perf stat on $quarkus_pid"
   perf stat -d -p $quarkus_pid &
   stat_pid=$!
@@ -177,7 +182,7 @@ if [[ "$OSTYPE" == "linux-gnu" ]]; then
   pidstat -p $quarkus_pid 1 &
   pidstat_pid=$!
   sleep $WARMUP
-  kill -SIGTERM $pidstat_pid
+  kill -SIGTERM "$pidstat_pid"
 else
   # Print stats header
   ps -p $quarkus_pid -o %cpu,rss,vsz | head -1
@@ -191,7 +196,10 @@ echo "----- Stopped stats, waiting load to complete"
 wait $ap_pid
 
 if [ "${PERF}" = true ]; then
-  kill -SIGINT $stat_pid
+  if [ "${WRK_PROFILING}" = true ]; then
+    kill -SIGINT "$wrk_stat_pid"
+  fi
+  kill -SIGINT "$stat_pid"
 fi
 
 wait $wrk_pid
