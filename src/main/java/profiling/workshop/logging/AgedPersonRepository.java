@@ -15,14 +15,6 @@ public class AgedPersonRepository {
     @Inject
     LoggingService log;
 
-    public record Person(long id, String name, short birthYear) {
-
-        int age() {
-            return Year.now().getValue() - birthYear;
-        }
-
-    }
-
     private static final int MAX_AGE = 80;
     private List<Person> persons;
 

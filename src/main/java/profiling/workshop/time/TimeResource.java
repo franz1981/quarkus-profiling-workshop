@@ -17,9 +17,6 @@ public class TimeResource {
     @Inject
     TimeService service;
 
-    @RegisterForReflection
-    public record Tick(String zoneId, long utcTime) { }
-
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Tick now() {

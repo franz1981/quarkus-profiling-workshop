@@ -1,6 +1,6 @@
 #!/bin/bash
 
-HYPERFOIL_HOME=./hyperfoil
+HYPERFOIL_HOME=/home/mario/software/hyperfoil-0.24
 
 URL=hello
 

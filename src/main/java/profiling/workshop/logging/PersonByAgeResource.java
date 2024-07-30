@@ -1,7 +1,6 @@
 package profiling.workshop.logging;
 
 import io.smallrye.common.annotation.NonBlocking;
-import profiling.workshop.logging.AgedPersonRepository.Person;
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;

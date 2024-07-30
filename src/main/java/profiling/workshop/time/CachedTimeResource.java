@@ -20,11 +20,11 @@ public class CachedTimeResource {
     TimeService timeService;
 
     private static final String ZONE_ID = ZoneId.systemDefault().getDisplayName(TextStyle.FULL, Locale.ITALY);
-    private volatile CompletableFuture<TimeResource.Tick> time = new CompletableFuture<>();
+    private volatile CompletableFuture<Tick> time = new CompletableFuture<>();
 
     @Scheduled(every = "1s")
     public void updateTime() {
-        var tick = new TimeResource.Tick(ZONE_ID, timeService.time());
+        var tick = new Tick(ZONE_ID, timeService.time());
         if (time.isDone()) {
             time = CompletableFuture.completedFuture(tick);
         } else {
@@ -34,7 +34,7 @@ public class CachedTimeResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public CompletionStage<TimeResource.Tick> now() {
+    public CompletionStage<Tick> now() {
         return time;
     }
 }
