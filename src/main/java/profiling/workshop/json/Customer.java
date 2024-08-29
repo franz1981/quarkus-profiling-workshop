@@ -2,6 +2,7 @@ package profiling.workshop.json;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.resteasy.reactive.jackson.SecureField;
 
 public class Customer extends Person {
@@ -11,7 +12,8 @@ public class Customer extends Person {
 
     private Address address;
 
-    private List<Person> children;
+    @JsonProperty("children")
+    private List<Person> persons;
 
     private CreditCard[] creditCards;
 
@@ -36,12 +38,12 @@ public class Customer extends Person {
         return super.getAge();
     }
 
-    public List<Person> getChildren() {
-        return children;
+    public List<Person> getPersons() {
+        return persons;
     }
 
-    public void setChildren(List<Person> children) {
-        this.children = children;
+    public void setPersons(List<Person> persons) {
+        this.persons = persons;
     }
 
     public CreditCard[] getCreditCards() {
