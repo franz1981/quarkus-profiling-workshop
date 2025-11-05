@@ -1,7 +1,5 @@
 #!/bin/bash
 
-HYPERFOIL_HOME=${HYPERFOIL_HOME:-./hyperfoil}
-
 URL=hello
 
 DURATION=40
@@ -106,12 +104,23 @@ PROFILING=$((${DURATION}/2))
 
 FULL_URL=http://localhost:8080/${URL}
 
+echo "----- Install ap-loader -----"
+
+jbang app install ap-loader@jvm-profiling-tools/ap-loader
+
+echo "----- Install Hyperfoil -----"
+
+jbang app install wrk2@hyperfoil
+
+jbang app install wrk@hyperfoil
+
 echo "----- Benchmarking endpoint ${FULL_URL}"
 
 # set sysctl kernel variables only if necessary
 if [[ "$OSTYPE" == "linux-gnu" ]]; then
   current_value=$(sysctl -n kernel.perf_event_paranoid)
   if [ "$current_value" -ne 1 ]; then
+    echo "----- Setting kernel params Linux Perf usage"
     sudo sysctl kernel.perf_event_paranoid=1
     sudo sysctl kernel.kptr_restrict=0
   fi
@@ -135,10 +144,10 @@ echo "----- Quarkus running at pid $quarkus_pid using ${THREADS} I/O threads"
 if [ "${RATE}" != "0" ]
 then
   echo "----- Start fixed rate test at ${RATE} requests/sec and profiling"
-  ${HYPERFOIL_HOME}/bin/wrk2.sh -R ${RATE} -c ${CONNECTIONS} -t ${THREADS} -d ${DURATION}s ${FULL_URL} &
+  jbang wrk2@hyperfoil -R ${RATE} -c ${CONNECTIONS} -t ${THREADS} -d ${DURATION}s ${FULL_URL} &
 else
   echo "----- Start all-out test and profiling"
-  ${HYPERFOIL_HOME}/bin/wrk.sh -c ${CONNECTIONS} -t ${THREADS} -d ${DURATION}s ${FULL_URL} &
+ jbang wrk@hyperfoil -c ${CONNECTIONS} -t ${THREADS} -d ${DURATION}s ${FULL_URL} &
 fi
 
 wrk_pid=$!
@@ -157,10 +166,10 @@ else
      JFR_ARGS=-XX:+FlightRecorder
      wrk_jvm_pid=`jps | grep Wrk | awk '{print $1}'`
      echo "----- Starting async-profiler on load generator process ($wrk_jvm_pid)"
-     java -jar ap-loader-all.jar profiler -e ${EVENT} -t -d ${PROFILING} -f wrk_${NOW}_${EVENT}.${FORMAT} $wrk_jvm_pid &
+     jbang ap-loader@jvm-profiling-tools/ap-loader profiler -e ${EVENT} -t -d ${PROFILING} -f wrk_${NOW}_${EVENT}.${FORMAT} $wrk_jvm_pid &
   fi
   echo "----- Starting async-profiler on quarkus application ($quarkus_pid)"
-  java -jar ap-loader-all.jar profiler -e ${EVENT} -t -d ${PROFILING} -f ${NOW}_${EVENT}.${FORMAT} $quarkus_pid &
+  jbang ap-loader@jvm-profiling-tools/ap-loader profiler -e ${EVENT} -t -d ${PROFILING} -f ${NOW}_${EVENT}.${FORMAT} $quarkus_pid &
 fi
 
 ap_pid=$!
