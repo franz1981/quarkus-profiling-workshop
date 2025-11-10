@@ -68,7 +68,7 @@ Help()
    echo "w    profile the load generator, Hyperfoil in this case."
    echo "     default is false"
    echo ""
-   echo "g    if specified, run async-profiler with the --total flag (aggregate across threads)."
+   echo "g    if specified, run async-profiler with the --total flag."
    echo "     default is false"
 }
 
