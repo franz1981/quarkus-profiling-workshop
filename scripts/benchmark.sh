@@ -23,6 +23,8 @@ PERF=false
 
 WRK_PROFILING=false
 
+TOTAL=false
+
 die () {
     echo "$*"
     exit 1
@@ -65,9 +67,12 @@ Help()
    echo ""
    echo "w    profile the load generator, Hyperfoil in this case."
    echo "     default is false"
+   echo ""
+   echo "g    if specified, run async-profiler with the --total flag (aggregate across threads)."
+   echo "     default is false"
 }
 
-while getopts "hu:e:f:d:jt:r:c:pw" option; do
+while getopts "hu:e:f:d:jt:r:c:pwg" option; do
    case $option in
       h) Help
          exit;;
@@ -91,6 +96,9 @@ while getopts "hu:e:f:d:jt:r:c:pw" option; do
          ;;
       w) WRK_PROFILING=true
          ;;
+      g) TOTAL=true
+         ;;
+      *) echo "Invalid option: -${OPTARG}"; Help; exit 1;;
    esac
 done
 
@@ -130,10 +138,11 @@ if [ "${JFR}" = true ]; then
    JFR_ARGS=-XX:+FlightRecorder
 fi
 
-trap 'echo "cleaning up quarkus process";kill ${quarkus_pid}' SIGINT SIGTERM SIGKILL
+trap 'echo "cleaning up quarkus process"; kill ${quarkus_pid} 2>/dev/null || true' SIGINT SIGTERM EXIT
 
 # let's run it with a single thread, is simpler!
 # TODO cmd can be extracted and become a run-quarkus.sh script per-se
+# you can tune the worker pool as well via -Dquarkus.thread-pool.max-threads=1
 java ${JFR_ARGS} -Dquarkus.vertx.event-loops-pool-size=${THREADS} -XX:+UnlockDiagnosticVMOptions -XX:+DebugNonSafepoints -jar ../target/quarkus-app/quarkus-run.jar &
 quarkus_pid=$!
 
@@ -158,6 +167,12 @@ sleep $WARMUP
 
 NOW=$(date "+%y%m%d_%H_%M_%S")
 
+# compute profiler total argument
+TOTAL_ARG=""
+if [ "${TOTAL}" = true ]; then
+  TOTAL_ARG="--total"
+fi
+
 if [ "${JFR}" = true ]
 then
   jcmd $quarkus_pid JFR.start duration=${PROFILING}s filename=${NOW}.jfr dumponexit=true settings=profile
@@ -166,10 +181,10 @@ else
      JFR_ARGS=-XX:+FlightRecorder
      wrk_jvm_pid=`jps | grep Wrk | awk '{print $1}'`
      echo "----- Starting async-profiler on load generator process ($wrk_jvm_pid)"
-     jbang ap-loader@jvm-profiling-tools/ap-loader profiler -e ${EVENT} -t -d ${PROFILING} -f wrk_${NOW}_${EVENT}.${FORMAT} $wrk_jvm_pid &
+     jbang ap-loader@jvm-profiling-tools/ap-loader profiler ${TOTAL_ARG} -e ${EVENT} -t -d ${PROFILING} -f wrk_${NOW}_${EVENT}.${FORMAT} $wrk_jvm_pid &
   fi
   echo "----- Starting async-profiler on quarkus application ($quarkus_pid)"
-  jbang ap-loader@jvm-profiling-tools/ap-loader profiler -e ${EVENT} -t -d ${PROFILING} -f ${NOW}_${EVENT}.${FORMAT} $quarkus_pid &
+  jbang ap-loader@jvm-profiling-tools/ap-loader profiler ${TOTAL_ARG} -e ${EVENT} -t -d ${PROFILING} -f ${NOW}_${EVENT}.${FORMAT} $quarkus_pid &
 fi
 
 ap_pid=$!
@@ -177,12 +192,10 @@ ap_pid=$!
 if [ "${PERF}" = true ]; then
   if [ "${WRK_PROFILING}" = true ]; then
     echo "----- Collecting perf stat on $wrk_jvm_pid"
-    perf stat -d -p "$wrk_jvm_pid" &
-    wrk_stat_pid=$!
+    perf stat -d -p "$wrk_jvm_pid" sleep ${PROFILING} &
   fi
   echo "----- Collecting perf stat on $quarkus_pid"
-  perf stat -d -p $quarkus_pid &
-  stat_pid=$!
+  perf stat -d -p $quarkus_pid sleep ${PROFILING} &
 fi
 
 echo "----- Showing stats for $WARMUP seconds"
@@ -203,13 +216,6 @@ fi
 echo "----- Stopped stats, waiting load to complete"
 
 wait $ap_pid
-
-if [ "${PERF}" = true ]; then
-  if [ "${WRK_PROFILING}" = true ]; then
-    kill -SIGINT "$wrk_stat_pid"
-  fi
-  kill -SIGINT "$stat_pid"
-fi
 
 wait $wrk_pid
 
