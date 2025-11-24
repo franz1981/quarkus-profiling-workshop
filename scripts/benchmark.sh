@@ -36,6 +36,11 @@ CPU_AFFINITY="0,1"
 # human-friendly description of affinity/processor constraints (set later)
 AFFINITY_DESC=
 
+# Special environment flag: when set to "true" (export PERF_STAT=true), the script will
+# use `perf stat` attached to the Quarkus PID instead of async-profiler/ap-loader.
+# Disabled by default.
+PERF_STAT=${PERF_STAT:-false}
+
 die () {
     echo "$*"
     exit 1
@@ -81,6 +86,8 @@ Help()
    echo ""
    echo "g    if specified, run async-profiler with the --total flag."
    echo "     default is false"
+   echo ""
+   echo "Note: you can also enable PERF_STAT by exporting PERF_STAT=true in the environment to run 'perf stat' attached to the Quarkus PID instead of async-profiler."
 }
 
 while getopts "hu:e:f:d:jr:c:p:a:g" option; do
@@ -141,9 +148,9 @@ echo "----- Benchmarking endpoint ${FULL_URL}"
 # set sysctl kernel variables only if necessary
 if [[ "$OSTYPE" == "linux-gnu" ]]; then
   current_value=$(sysctl -n kernel.perf_event_paranoid)
-  if [ "$current_value" -ne 1 ]; then
+  if [ "$current_value" -ne -1 ]; then
     echo "----- Setting kernel params Linux Perf usage"
-    sudo sysctl kernel.perf_event_paranoid=1
+    sudo sysctl kernel.perf_event_paranoid=-1
     sudo sysctl kernel.kptr_restrict=0
   fi
 fi
@@ -265,12 +272,20 @@ if [ "${TOTAL}" = true ]; then
   TOTAL_ARG="--total"
 fi
 
-if [ "${JFR}" = true ]
-then
-  jcmd $quarkus_pid JFR.start duration=${PROFILING}s filename=${NOW}.jfr dumponexit=true settings=profile
+# Profiler start logic: if PERF_STAT is enabled use perf stat; otherwise use JFR or async-profiler as before
+if [ "${PERF_STAT}" = "true" ]; then
+  echo "----- Starting perf stat attached to quarkus application ($quarkus_pid) for ${PROFILING}s"
+  # perf stat will run the provided command (sleep) for the desired duration while attaching to the PID
+  # output file: timestamp_perfstat.txt
+  perf stat -p $quarkus_pid -o ${NOW}_perfstat.txt sleep ${PROFILING} &
 else
-  echo "----- Starting async-profiler on quarkus application ($quarkus_pid)"
-  jbang ap-loader@jvm-profiling-tools/ap-loader profiler ${TOTAL_ARG} --total -e ${EVENT} -t -d ${PROFILING} -f ${NOW}_${EVENT}.${FORMAT} $quarkus_pid &
+  if [ "${JFR}" = true ]
+  then
+    jcmd $quarkus_pid JFR.start duration=${PROFILING}s filename=${NOW}.jfr dumponexit=true settings=profile
+  else
+    echo "----- Starting async-profiler on quarkus application ($quarkus_pid)"
+    jbang ap-loader@jvm-profiling-tools/ap-loader profiler ${TOTAL_ARG} --total -e ${EVENT} -t -d ${PROFILING} -f ${NOW}_${EVENT}.${FORMAT} $quarkus_pid &
+  fi
 fi
 
 ap_pid=$!
