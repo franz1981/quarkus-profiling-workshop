@@ -11,7 +11,7 @@ FORMAT=html
 
 JFR=false
 
-THREADS=2
+WRK_THREADS=2
 
 RATE=0
 
@@ -19,11 +19,12 @@ CONNECTIONS=10
 
 JFR_ARGS=
 
-PERF=false
-
-WRK_PROFILING=false
-
 TOTAL=false
+
+# default to 1 GB heap and using Parallel GC
+JVM_ARGS="-Xmx1g -Xms1g -XX:+UseParallelGC"
+
+PROCESSORS=2
 
 die () {
     echo "$*"
@@ -53,26 +54,20 @@ Help()
    echo ""
    echo "j    if specified, it uses JFR profiling. async-profiler otherwise."
    echo ""
-   echo "t    number of I/O threads of the quarkus application."
-   echo ""
-   echo "     default is 2"
-   echo ""
    echo "r    rate of the load generation phase, in requests/sec."
    echo "     default not specified (0)"
    echo ""
    echo "c    number of connections used by the load generator."
    echo "     default is 10"
    echo ""
-   echo "p    if specified, run perf stat together with the selected profiler. Only GNU Linux."
-   echo ""
-   echo "w    profile the load generator, Hyperfoil in this case."
-   echo "     default is false"
+   echo "p    if specified, constrain the java available cores to the specified count."
+   echo "     default not specified (all available cores)"
    echo ""
    echo "g    if specified, run async-profiler with the --total flag."
    echo "     default is false"
 }
 
-while getopts "hu:e:f:d:jt:r:c:pwg" option; do
+while getopts "hu:e:f:d:jr:c:pg" option; do
    case $option in
       h) Help
          exit;;
@@ -86,15 +81,11 @@ while getopts "hu:e:f:d:jt:r:c:pwg" option; do
          ;;
       j) JFR=true
          ;;
-      t) THREADS=${OPTARG}
-         ;;
       r) RATE=${OPTARG}
          ;;
       c) CONNECTIONS=${OPTARG}
          ;;
-      p) PERF=true
-         ;;
-      w) WRK_PROFILING=true
+      p) PROCESSORS=${OPTARG}
          ;;
       g) TOTAL=true
          ;;
@@ -140,23 +131,30 @@ fi
 
 trap 'echo "cleaning up quarkus process"; kill ${quarkus_pid} 2>/dev/null || true' SIGINT SIGTERM EXIT
 
-# let's run it with a single thread, is simpler!
-# TODO cmd can be extracted and become a run-quarkus.sh script per-se
-# you can tune the worker pool as well via -Dquarkus.thread-pool.max-threads=1
-java ${JFR_ARGS} -Dquarkus.vertx.event-loops-pool-size=${THREADS} -XX:+UnlockDiagnosticVMOptions -XX:+DebugNonSafepoints -jar ../target/quarkus-app/quarkus-run.jar &
+# if PROCESSORS is set, constrain the java process to use only the specified number of cores
+if [ -n "${PROCESSORS}" ]; then
+  JVM_ARGS=${JVM_ARGS}" -XX:ActiveProcessorCount=${PROCESSORS}"
+  echo "----- Constraining Java to use only ${PROCESSORS} cores"
+fi
+
+# you can tune the threads pools via -Dquarkus.thread-pool.max-threads and -Dquarkus.vertx.event-loops-pool-size
+java ${JVM_ARGS} ${JFR_ARGS} -XX:+UnlockDiagnosticVMOptions -XX:+DebugNonSafepoints -jar ../target/quarkus-app/quarkus-run.jar &
 quarkus_pid=$!
 
 sleep 2
-
-echo "----- Quarkus running at pid $quarkus_pid using ${THREADS} I/O threads"
+if [ -n "${PROCESSORS}" ]; then
+  echo "----- Quarkus running at pid $quarkus_pid using ${PROCESSORS} cores"
+else
+  echo "----- Quarkus running at pid $quarkus_pid using all available cores"
+fi
 
 if [ "${RATE}" != "0" ]
 then
   echo "----- Start fixed rate test at ${RATE} requests/sec and profiling"
-  jbang wrk2@hyperfoil -R ${RATE} -c ${CONNECTIONS} -t ${THREADS} -d ${DURATION}s ${FULL_URL} &
+  jbang wrk2@hyperfoil -R ${RATE} -c ${CONNECTIONS} -t ${WRK_THREADS} -d ${DURATION}s ${FULL_URL} &
 else
   echo "----- Start all-out test and profiling"
- jbang wrk@hyperfoil -c ${CONNECTIONS} -t ${THREADS} -d ${DURATION}s ${FULL_URL} &
+ jbang wrk@hyperfoil -c ${CONNECTIONS} -t ${WRK_THREADS} -d ${DURATION}s ${FULL_URL} &
 fi
 
 wrk_pid=$!
@@ -177,26 +175,11 @@ if [ "${JFR}" = true ]
 then
   jcmd $quarkus_pid JFR.start duration=${PROFILING}s filename=${NOW}.jfr dumponexit=true settings=profile
 else
-  if [ "${WRK_PROFILING}" = true ]; then
-     JFR_ARGS=-XX:+FlightRecorder
-     wrk_jvm_pid=`jps | grep Wrk | awk '{print $1}'`
-     echo "----- Starting async-profiler on load generator process ($wrk_jvm_pid)"
-     jbang ap-loader@jvm-profiling-tools/ap-loader profiler ${TOTAL_ARG} -e ${EVENT} -t -d ${PROFILING} -f wrk_${NOW}_${EVENT}.${FORMAT} $wrk_jvm_pid &
-  fi
   echo "----- Starting async-profiler on quarkus application ($quarkus_pid)"
-  jbang ap-loader@jvm-profiling-tools/ap-loader profiler ${TOTAL_ARG} -e ${EVENT} -t -d ${PROFILING} -f ${NOW}_${EVENT}.${FORMAT} $quarkus_pid &
+  jbang ap-loader@jvm-profiling-tools/ap-loader profiler ${TOTAL_ARG} --total -e ${EVENT} -t -d ${PROFILING} -f ${NOW}_${EVENT}.${FORMAT} $quarkus_pid &
 fi
 
 ap_pid=$!
-
-if [ "${PERF}" = true ]; then
-  if [ "${WRK_PROFILING}" = true ]; then
-    echo "----- Collecting perf stat on $wrk_jvm_pid"
-    perf stat -d -p "$wrk_jvm_pid" sleep ${PROFILING} &
-  fi
-  echo "----- Collecting perf stat on $quarkus_pid"
-  perf stat -d -p $quarkus_pid sleep ${PROFILING} &
-fi
 
 echo "----- Showing stats for $WARMUP seconds"
 
