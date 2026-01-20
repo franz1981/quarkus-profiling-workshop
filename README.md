@@ -38,6 +38,21 @@ You can then execute your native executable with: `./target/hello-world-app-1.0.
 
 If you want to learn more about building native executables, please consult https://quarkus.io/guides/maven-tooling.
 
+## Creating a local container image
+
+You can easily create a Podman container image using:
+
+```shell
+./mvnw clean package -Dquarkus.container-image.build=true
+```
+
+which will create something like:
+```shell
+$ podman images
+REPOSITORY                                    TAG                                       IMAGE ID      CREATED             SIZE
+docker.io/$USER/hello-world-app            1.0.0-SNAPSHOT                            4d6c954c252b  About a minute ago  426 MB
+```
+
 ## Related Guides
 
 - Mutiny ([guide](https://quarkus.io/guides/mutiny-primer)): Write reactive applications with the modern Reactive Programming library Mutiny
